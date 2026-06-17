@@ -2,7 +2,7 @@
 
 Multi-Stage Pyramid Graph Learning (MSPGL) for point-level browsing target identification in virtual trajectories.
 
-This repository provides the reviewer-facing Jupyter implementation for the manuscript:
+
 
 **MSPGL: Multi-Stage Pyramid Graph Learning for Point-level Browsing Target Identification in Virtual Trajectories**  
 
@@ -12,7 +12,6 @@ The method represents each virtual trajectory as a directed multi-relational gra
 1. **Stage I:** relation-aware graph attention learning for high-recall candidate generation.
 2. **Stage II:** multi-source feature fusion and XGBoost-based refinement for higher-precision target identification.
 
-The submitted manuscript reports an AUC-PR of 0.6838 on real Public Map Service Platform logs. In the two-stage setting, Stage I reaches Recall 0.8471 and Precision 0.3490, while Stage II improves Precision to 0.6166 and keeps Recall at 0.6929.
 
 ## Repository Contents
 
@@ -60,7 +59,7 @@ PyTorch Geometric may require version-specific wheels depending on the installed
 
 ## Data
 
-The original training logs contain sensitive Public Map Service Platform user interaction records and are not released in this repository.
+
 
 An anonymized sample CSV is provided only to show the expected input format:
 
@@ -68,8 +67,7 @@ An anonymized sample CSV is provided only to show the expected input format:
 data/raw_csv/sample trajectory.csv
 ```
 
-Users who have authorized trajectory data can place raw CSV files in `data/raw_csv/` and run the graph-construction and training sections. Without access to the private training data, reviewers can use the released model artifacts for inference and interpretability checks.
-
+Users who have authorized trajectory data can place raw CSV files in `data/raw_csv/` and run the graph-construction and training sections. 
 ## Released Model Artifacts
 
 Because the training data cannot be publicly shared, this repository includes trained MSPGL model artifacts in:
@@ -126,13 +124,3 @@ Default input and output paths:
 
 Generated runtime outputs are ignored by Git. Released model files under `MSPGL model/` are intended to be tracked with Git LFS because some files exceed normal GitHub file-size limits.
 
-## Notes for GitHub Submission
-
-- Submit `MSPGL.ipynb` as the primary reproducible artifact.
-- Keep `MSPGL.py` as an optional plain-Python export for reviewers who prefer scripts.
-- Use Git LFS for `MSPGL model/` before pushing to GitHub.
-- Do not upload private or non-anonymized PMSP logs.
-
-## Citation
-
-If you use this code, please cite the associated manuscript once it is accepted or publicly available.
