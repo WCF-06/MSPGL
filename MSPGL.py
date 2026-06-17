@@ -732,6 +732,7 @@ def build_graph(data, threshold, time_threshold=10, samelayer_penalty=1.0, windo
     node_lon_lat = {}
     node_label = {}
     node_label_int = {}
+    label_column = 'MSPGL_label' if 'MSPGL_label' in data.columns else 'label'
     
     for index, row in data.iterrows():
         node_id = row['ID']
@@ -739,7 +740,7 @@ def build_graph(data, threshold, time_threshold=10, samelayer_penalty=1.0, windo
         lat = row['lat']
         layer = row['layer']
         time = row['time']
-        label_raw = str(row['label']).strip().upper()
+        label_raw = str(row[label_column]).strip().upper()
         row_csv = row['row']
         col_csv = row['col']
         
@@ -1099,8 +1100,11 @@ def process_and_save_files(input_dir, output_vis_dir, output_pyg_dir,
             
             stages_time['csv_read'] = time.time() - stage_start
             
-            required_cols = ['ID', 'lon', 'lat', 'layer', 'label', 'time', 'row', 'col']
+            required_cols = ['ID', 'lon', 'lat', 'layer', 'time', 'row', 'col']
             missing_cols = set(required_cols) - set(data.columns)
+            label_column = 'MSPGL_label' if 'MSPGL_label' in data.columns else 'label'
+            if label_column not in data.columns:
+                missing_cols.add('MSPGL_label')
             if missing_cols:
                 reason = "Processing error"
                 error_msg = "Processing error"
@@ -1110,7 +1114,7 @@ def process_and_save_files(input_dir, output_vis_dir, output_pyg_dir,
                     'subfolder': subfolder_name
                 }
                 failed_by_reason.setdefault(reason, []).append(file_key)
-                logging.error(f"MSPGL processing error: {str(e)}")
+                logging.error(f"MSPGL processing error: missing required columns {sorted(missing_cols)}")
                 tracker.add_result(file_key, 'failed', time.time() - file_start_time, subfolder_name, error_msg=error_msg)
                 continue
             
@@ -2654,7 +2658,8 @@ INPUT_FOLDER = "./data/raw_csv"
 # Output path of imbalance statistics result
 OUTPUT_CSV = "./outputs/imbalance/IMB.csv"
 # Column name of label field (Y = browsing target, N = non-target)
-LABEL_COLUMN = "label"
+LABEL_COLUMN = "MSPGL_label"
+LEGACY_LABEL_COLUMN = "label"
 # =====================================================================================
 
 def traverse_and_calculate(root_directory: str) -> list:
@@ -2683,14 +2688,15 @@ def traverse_and_calculate(root_directory: str) -> list:
                 reader = csv.DictReader(f)
 
                 # Check if label column exists
-                if LABEL_COLUMN not in reader.fieldnames:
+                label_column = LABEL_COLUMN if LABEL_COLUMN in reader.fieldnames else LEGACY_LABEL_COLUMN
+                if label_column not in reader.fieldnames:
                     print(f"Warning: {file_name} missing label column, skipped")
                     continue
 
                 # Count labels row by row
                 for row in reader:
                     total_points += 1
-                    label = row[LABEL_COLUMN].strip().upper()
+                    label = row[label_column].strip().upper()
                     if label == "Y":
                         target_count += 1
                     elif label == "N":

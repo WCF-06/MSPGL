@@ -13,16 +13,16 @@ Each CSV corresponds to one virtual trajectory or one processing unit used by th
 | Column | Description |
 | --- | --- |
 | `ID` | Point identifier within the trajectory file |
-| `x`, `y` | Screen or tile-grid coordinates |
-| `lon`, `lat` | Geographic coordinates |
 | `time` | Timestamp or time-order variable |
-| `level` / `layer` | Map zoom or pyramid level |
-| `session`, `ipsession`, `IP_session` | Session-related identifiers |
-| `label` | Point-level target label used for supervised learning |
+| `level` | Map zoom level |
+| `layer` | Pyramid layer used for graph construction |
+| `row`, `col` | Tile-grid row and column coordinates |
+| `lon`, `lat` | Geographic coordinates |
+| `HGMM`, `HGMM_RF` | Baseline method labels included for comparison |
+| `MSPGL_label` | Point-level target label used by MSPGL |
 
-The notebook expects binary target labels represented as `Y` and `N` in the relevant label fields.
+The notebook expects binary MSPGL labels represented as `Y` and `N` in `MSPGL_label`. The code also keeps compatibility with older CSV files that use a `label` column.
 
 ## Privacy
 
 Before uploading data to GitHub, remove or anonymize any sensitive user, session, or platform identifiers. If the complete PMSP logs cannot be shared, keep only a small anonymized sample and document how qualified reviewers can request the full data.
-
