@@ -1,0 +1,4 @@
+"MSPGL model/*.pt" filter=lfs diff=lfs merge=lfs -text
+"MSPGL model/*.pkl" filter=lfs diff=lfs merge=lfs -text
+"MSPGL model/*.model" filter=lfs diff=lfs merge=lfs -text
+"MSPGL model/*.npy" filter=lfs diff=lfs merge=lfs -text

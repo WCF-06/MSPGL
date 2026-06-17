@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE/editor
+.idea/
+.vscode/
+
+# Runtime outputs
+outputs/
+data/pyg_graphs/
+
+# Trained models and intermediate artifacts
+*.pt
+*.pth
+*.pkl
+*.model
+*.npy
+!MSPGL model/
+!MSPGL model/*.pt
+!MSPGL model/*.pkl
+!MSPGL model/*.model
+!MSPGL model/*.npy
+
+# Logs and reports generated during experiments
+*.log
+processing_performance_*.csv
+processing_summary_*.csv
+FAILED_FILES_*.txt
+
+# OS files
+.DS_Store
+Thumbs.db
