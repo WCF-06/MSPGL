@@ -23,6 +23,3 @@ Each CSV corresponds to one virtual trajectory or one processing unit used by th
 
 The notebook expects binary MSPGL labels represented as `Y` and `N` in `MSPGL_label`. The code also keeps compatibility with older CSV files that use a `label` column.
 
-## Privacy
-
-Before uploading data to GitHub, remove or anonymize any sensitive user, session, or platform identifiers. If the complete PMSP logs cannot be shared, keep only a small anonymized sample and document how qualified reviewers can request the full data.
