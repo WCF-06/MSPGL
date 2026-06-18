@@ -14,7 +14,6 @@ Each CSV corresponds to one virtual trajectory or one processing unit used by th
 | --- | --- |
 | `ID` | Point identifier within the trajectory file |
 | `time` | Timestamp or time-order variable |
-| `level` | Map zoom level |
 | `layer` | Pyramid layer used for graph construction |
 | `row`, `col` | Tile-grid row and column coordinates |
 | `lon`, `lat` | Geographic coordinates |

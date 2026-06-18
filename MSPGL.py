@@ -1513,7 +1513,7 @@ def load_all_data(data_root):
         max_layer = 10
     print(f"Loaded {len(all_data)} PyG graph files from {root_folder}.")
     print(f"Skipped files: {len(skipped_files)}")
-    print(f"Maximum level detected: {max_layer}")
+    print(f"Maximum layer detected: {max_layer}")
     print(f"Stage-1 input excludes the leaves feature; input dimension is taken from each PyG graph.")
     
     return all_data
