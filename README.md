@@ -1,126 +1,98 @@
 # MSPGL
 
-Multi-Stage Pyramid Graph Learning (MSPGL) for point-level browsing target identification in virtual trajectories.
+Official implementation of **Multi-Stage Pyramid Graph Learning for Point-level Browsing Target Identification in Virtual Trajectories**.
 
+MSPGL represents each virtual trajectory as a directed multi-relational graph. Stage I uses relation-aware graph attention to generate a recall-oriented candidate set. Stage II refines those candidates with XGBoost using the out-of-fold Stage I probability and the ten node attributes listed in Table 1 of the manuscript.
 
-
-**MSPGL: Multi-Stage Pyramid Graph Learning for Point-level Browsing Target Identification in Virtual Trajectories**  
-
-
-The method represents each virtual trajectory as a directed multi-relational graph that encodes spatial adjacency, temporal continuity, and cross-level scale relations. The pipeline then uses a two-stage design:
-
-1. **Stage I:** relation-aware graph attention learning for high-recall candidate generation.
-2. **Stage II:** multi-source feature fusion and XGBoost-based refinement for higher-precision target identification.
-
-
-## Repository Contents
+## What is included
 
 ```text
 .
-|-- MSPGL.ipynb              # Main Jupyter notebook for reproduction and review
-|-- MSPGL.py                 # Python export of the notebook
-|-- requirements.txt         # Python package requirements
-|-- MSPGL model/             # Released trained model parameters and Stage-II feature artifacts
-|-- data/
-|   |-- README.md            # Input data schema and path notes
-|   `-- raw_csv/             # Anonymized sample trajectory CSV
-`-- outputs/                 # Generated at runtime and ignored by Git
+|-- MSPGL.ipynb                   # Original notebook and inference workflow
+|-- MSPGL.py                      # Python export used by the reproducibility scripts
+|-- prepare_graphs.py             # Build the released undirected graph artifacts
+|-- make_directed_graphs.py       # Convert them to forward-time directed graphs
+|-- corrected_experiment.py       # Single-seed leakage-control diagnostic
+|-- supplementary_experiments.py # Multi-seed Stage-I and ablation utilities
+|-- manuscript_experiments.py    # Manuscript Stage II and Table 1 analysis
+|-- summarize_manuscript_results.py # Final tables and bootstrap intervals
+|-- audit_dataset.py              # Group, duplicate, and label audit
+|-- data/raw_csv/                 # De-identified schema example
+`-- MSPGL model/                  # Previously released model artifacts (Git LFS)
 ```
+
+The notebook and previously released model files remain available for compatibility. The command-line scripts implement the revised leakage-controlled protocol.
+
+## Revised evaluation protocol
+
+- Train, validation, and test trajectories are disjoint by pseudonymized `IP` group.
+- Stage II training uses five-fold group-wise out-of-fold Stage I probabilities.
+- Graph edges point forward in time; equal-time pairs are removed.
+- Graph construction uses a spatial threshold of `55.33`, a temporal threshold of 3 seconds, and the three manuscript relation types: same-level, upward, and downward.
+- The trajectory-index feature is excluded from model inputs.
+- Validation data select early stopping and decision thresholds; the test split is used only for final evaluation.
+- The complete procedure is repeated with seeds `42`, `7`, `19`, `73`, and `101`.
+- Stage II uses exactly 11 features: `Stage1Prob` plus the ten raw attributes described in Table 1.
+
+The reported five-seed test means are F1 `0.4556` for MSPGL Stage I and F1 `0.5048` for MSPGL Full. The scripts regenerate summary tables locally under `outputs/`; generated results and predictions are not tracked.
 
 ## Environment
 
-The experiments were run on the following device configuration:
-
-| Item | Value |
-| --- | --- |
-| Main device | CUDA |
-| GPU | NVIDIA GeForce RTX 4080 |
-| GPU count | 1 |
-| GPU memory | 16.84 GB |
-| CPU cores | 28 |
-| Total memory | 33.45 GB |
-| PyTorch | 2.4.0+cu124 |
-| CUDA | 12.4 |
-| Platform | Linux-6.8.0-49-generic-x86_64-with-glibc2.35 |
-
-Python 3.10 or 3.11 is recommended.
-
-## Installation
-
-Create and activate a clean environment, then install the dependencies:
+Use Python 3.10 or 3.11. PyTorch 2.4.0 does not support Python 3.13.
 
 ```bash
-pip install -r requirements.txt
+python -m venv .venv
+# Linux/macOS
+source .venv/bin/activate
+# Windows PowerShell
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
-For CUDA acceleration, install the PyTorch build that matches your local CUDA driver first. The reported environment used PyTorch `2.4.0+cu124`.
-
-PyTorch Geometric may require version-specific wheels depending on the installed PyTorch and CUDA versions. See the official PyTorch Geometric installation guide if `torch-geometric` or its optional extensions fail to install.
+Install the PyTorch build appropriate for the local CUDA driver before the remaining dependencies if GPU acceleration is required. CPU execution is supported but the full five-seed experiment is computationally expensive.
 
 ## Data
 
+The server-log dataset is restricted and is not distributed. `data/raw_csv/sample trajectory.csv` is a de-identified schema example, not a replacement for the experimental dataset. Authorized users should place one trajectory per CSV in `data/raw_csv/`. Full training additionally requires pseudonymized `IP` and `IP_session` columns so group-disjoint splitting can be reproduced.
 
+No raw IP address, access token, or direct user identifier should be committed. See [`data/README.md`](data/README.md) for the accepted column names.
 
-An anonymized sample CSV is provided only to show the expected input format:
+## Reproduce the revised experiment
 
-```text
-data/raw_csv/sample trajectory.csv
+From the repository root:
+
+```bash
+python audit_dataset.py
+python prepare_graphs.py
+python make_directed_graphs.py
+python manuscript_experiments.py
+python summarize_manuscript_results.py
 ```
 
-Users who have authorized trajectory data can place raw CSV files in `data/raw_csv/` and run the graph-construction and training sections. 
-## Released Model Artifacts
+The first graph-building step preserves the released preprocessing logic. The second step enforces the manuscript's forward-time directed graph and removes the trajectory-index input. `manuscript_experiments.py` trains the Stage II specification used in the revision and also reports per-feature Table 1 analyses. `summarize_manuscript_results.py` refits the final 11-feature model from the cached OOF matrices and produces the multi-seed tables and trajectory-clustered bootstrap intervals.
 
-Because the training data cannot be publicly shared, this repository includes trained MSPGL model artifacts in:
+`supplementary_experiments.py` remains available for the broader feature-group, graph, and hyperparameter diagnostics used during revision.
 
-```text
-MSPGL model/
+A small unit-test suite checks focal-loss stability and Stage II feature selection:
+
+```bash
+python -m unittest test_supplementary_experiments.py
 ```
 
-The folder contains:
+For a short pipeline check on authorized data:
 
-| File | Purpose |
-| --- | --- |
-| `best_model_layer_aware.pt` | Stage-I relation-aware graph attention model weights |
-| `xgb_phase2.model` | Stage-II XGBoost refinement model |
-| `scaler.pkl` | Feature scaler used by Stage II |
-| `model_config.pt` | Saved model and feature configuration |
-| `train_X_phase2.npy` | Saved Stage-II training feature matrix for SHAP background/reference use |
-| `val_X_phase2.npy` | Saved Stage-II validation feature matrix |
-| `test_X_phase2.npy` | Saved Stage-II test feature matrix |
-| `test_y_phase2.npy` | Saved Stage-II test labels |
-
-The notebook's original training pipeline writes model artifacts to `./outputs/model`. To use the released model artifacts directly, either copy the contents of `MSPGL model/` to `outputs/model/`, or update the notebook path variables `MODEL_DIR` and `MODEL_INPUT_DIR` to `./MSPGL model`.
-
-## Running the Notebook
-
-Open and run:
-
-```text
-MSPGL.ipynb
+```bash
+python supplementary_experiments.py --experiments core --seeds 42 --folds 2 --max-epochs 2 --bootstrap-replicates 100 --output outputs/smoke
+python manuscript_experiments.py --seeds 42 --folds 2 --max-epochs 2 --output outputs/manuscript_smoke
 ```
 
-The notebook is organized into the following parts:
+Generated graphs, checkpoints, predictions, and reports are written below `outputs/` and ignored by Git.
 
-1. Build graph-structured data and visualize it.
-2. Train the MSPGL two-stage model.
-3. Extract target points using the trained MSPGL model.
-4. Calculate class-imbalance statistics.
-5. Run SHAP-based model interpretability analysis.
+## Released model artifacts
 
-If the private training data are unavailable, skip the full training section and use the released files in `MSPGL model/` for model loading, inference, and SHAP analysis.
+`MSPGL model/` contains the model files from the earlier public release and is tracked with Git LFS. These files support the original notebook workflow. They are not claimed to be the five independently trained models used to calculate the revised multi-seed summary.
 
-Default input and output paths:
+## Result interpretation
 
-| Purpose | Path |
-| --- | --- |
-| Raw CSV input | `./data/raw_csv` |
-| PyTorch Geometric graphs | `./data/pyg_graphs` |
-| Graph visualization output | `./outputs/graph_visualization` |
-| Trained model artifacts | `./outputs/model` |
-| Released model artifacts | `./MSPGL model` |
-| Inference results | `./outputs/inference` |
-| SHAP results | `./outputs/shap` |
-| Imbalance statistics | `./outputs/imbalance` |
-
-Generated runtime outputs are ignored by Git. Released model files under `MSPGL model/` are intended to be tracked with Git LFS because some files exceed normal GitHub file-size limits.
-
+Stage II is a precision-oriented candidate refiner. At validation-selected thresholds it raises precision and F1 relative to Stage I, while recall and AUC-PR decrease. The two stages therefore provide different operating characteristics rather than a uniform improvement across every metric.
