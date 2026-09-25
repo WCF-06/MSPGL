@@ -1349,7 +1349,7 @@ if __name__ == "__main__":
     OUTPUT_PYG_DIR = "./data/pyg_graphs"
     
     GRAPH_PARAMS = {
-        'threshold': 50.33,
+        'threshold': 55.33,
         'time_threshold': 3,
         'samelayer_penalty': 1.0,
         'window': 3,

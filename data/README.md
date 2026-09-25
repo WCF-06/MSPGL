@@ -1,24 +1,29 @@
-# Data Notes
+# Data layout
 
-Raw virtual trajectory CSV files should be placed in:
+Place authorized input trajectories in `data/raw_csv/`, with one CSV file per trajectory. The public sample illustrates the non-identifying feature and label columns only; it is not the study dataset and is not sufficient for grouped training.
 
-```text
-data/raw_csv/
-```
+## Required columns
 
-Each CSV corresponds to one virtual trajectory or one processing unit used by the MSPGL notebook. The sample file follows the expected schema used by `MSPGL.ipynb`.
+Graph construction accepts the released schema, including:
 
-## Important Columns
+- `ID`: within-trajectory node order;
+- `time`: interaction timestamp;
+- `layer` (or the corresponding released level field);
+- `row`, `col`, `lon`, and `lat`;
+- manual label: `label` or `MSPGL_label`, encoded as `Y`/`N`;
+- baseline labels: `leaves`/`HGMM` and `leaves_rf`/`HGMM_RF`, encoded as `Y`/`N`.
 
-| Column | Description |
-| --- | --- |
-| `ID` | Point identifier within the trajectory file |
-| `time` | Timestamp or time-order variable |
-| `layer` | Pyramid layer used for graph construction |
-| `row`, `col` | Tile-grid row and column coordinates |
-| `lon`, `lat` | Geographic coordinates |
-| `HGMM`, `HGMM_RF` | Baseline method labels included for comparison |
-| `MSPGL_label` | Point-level target label used by MSPGL |
+The leakage-controlled experiments also require:
 
-The notebook expects binary MSPGL labels represented as `Y` and `N` in `MSPGL_label`. The code also keeps compatibility with older CSV files that use a `label` column.
+- `IP`: a pseudonymized grouping identifier;
+- `IP_session`: a pseudonymized session identifier.
 
+Every trajectory associated with the same `IP` is kept in a single train, validation, or test subset. Do not use raw IP addresses or direct user identifiers.
+
+## Annotation fields
+
+The experimental CSVs contain one final manual-label column. They do not contain a second-annotator column, so independent inter-annotator agreement cannot be recomputed from the released files. The dataset audit reports manual-versus-baseline comparisons separately and does not present them as inter-annotator agreement.
+
+## Generated files
+
+`prepare_graphs.py` writes intermediate graphs to `outputs/graphs/`. `make_directed_graphs.py` converts them to the forward-time representation in `outputs/graphs-directed/`, which is consumed by the revised experiments.
